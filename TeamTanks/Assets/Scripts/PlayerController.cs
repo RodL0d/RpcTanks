@@ -12,24 +12,37 @@ public class PlayerController : MonoBehaviour
         RbP = GetComponent<Rigidbody2D>();
     }
 
-    void Update()
+    // FixedUpdate é ideal para manipulação de física
+    void FixedUpdate()
     {
         move();
     }
 
     void move()
     {
-        if (Input.GetKeyDown(KeyCode.W))
+        // Inicializar uma direção com zero
+        Vector2 movement = Vector2.zero;
+
+        // Verificar se W ou S estão sendo pressionados
+        if (Input.GetKey(KeyCode.W))
         {
-            RbP.velocity = Vector2.up * speed;
+            movement += Vector2.up;
         }
-        if (Input.GetKeyDown(KeyCode.S))
+        if (Input.GetKey(KeyCode.S))
         {
-            RbP.velocity = Vector2.down * speed;
+            movement += Vector2.down;
         }
-        else if (Input.GetKeyUp(KeyCode.W) || Input.GetKeyUp(KeyCode.S))
+        if (Input.GetKey(KeyCode.A))
         {
-            RbP.velocity = Vector2.zero;
+            movement += Vector2.left;
         }
+        if (Input.GetKey(KeyCode.D))
+        {
+            movement += Vector2.right;
+        }
+
+        // Aplicar a velocidade ao rigidbody
+        RbP.velocity = movement * speed;
     }
 }
+
