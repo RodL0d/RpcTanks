@@ -67,13 +67,13 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         PhotonNetwork.JoinRoom(roomName);
     }
 
-    // Chamado quando o jogador entra em uma sala
+    // Chamado quando o jogador entra em uma sala de espera
     public override void OnJoinedRoom()
     {
         Debug.Log("Entrou na sala: " + PhotonNetwork.CurrentRoom.Name);
 
-        // Aqui você pode carregar a cena do jogo
-        PhotonNetwork.LoadLevel("Mapa aim");
+        // Carrega a cena de espera (waiting room)
+        PhotonNetwork.LoadLevel("WaitingRoom");
     }
 
     // Chamado se houver falha ao entrar em uma sala
