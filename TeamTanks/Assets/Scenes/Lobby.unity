@@ -529,7 +529,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 836936179}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1762565530}
+        m_TargetAssemblyTypeName: LobbyManager, Assembly-CSharp
+        m_MethodName: CreateRoom
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &836936179
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1252,8 +1264,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98be886ce883ec0429bfef04499e5ce9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomNameInput: {fileID: 0}
-  roomListText: {fileID: 0}
+  roomNameInput: {fileID: 886071769}
+  roomListText: {fileID: 1769467183}
   maxPlayers: 4
 --- !u!4 &1762565531
 Transform:
@@ -1361,7 +1373,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -1775,7 +1787,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1941801076}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1762565530}
+        m_TargetAssemblyTypeName: LobbyManager, Assembly-CSharp
+        m_MethodName: JoinRoom
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1941801076
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1819,7 +1843,7 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1250966923}
+  - {fileID: 366947771}
   - {fileID: 596982655}
   - {fileID: 960187098}
-  - {fileID: 366947771}
   - {fileID: 1762565531}
