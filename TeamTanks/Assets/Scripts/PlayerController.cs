@@ -109,7 +109,7 @@ public class PlayerController : MonoBehaviour
     {
         canMove = false; // Desabilita o movimento do tanque
         RbP.velocity = Vector2.zero; // Para o tanque
-        cinemachineCam.m_Lens.OrthographicSize = zoomedOutSize; // Altera o zoom da Cinemachine
+        cinemachineCam.m_Lens.OrthographicSize = zoomedOutSize; // Altera o zoom da Cinemachine 
     }
 
     // Função para sair do modo de zoom e voltar ao normal
