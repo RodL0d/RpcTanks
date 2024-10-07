@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
 
 public class PlayerController : MonoBehaviour
 {
@@ -12,28 +13,51 @@ public class PlayerController : MonoBehaviour
     public float fireRate = 0.5f;   // Intervalo entre disparos
     private float nextFireTime = 0f;
 
+    public CinemachineVirtualCamera cinemachineCam; // Referência à CinemachineVirtualCamera
+    public float zoomedOutSize = 10f; // Tamanho da câmera ao dar zoom out
+    public float normalCameraSize = 5f; // Tamanho normal da câmera
+    private bool canMove = true; // Controle de movimento
+
+    // Start is called before the first frame update
     private void Start()
     {
         RbP = GetComponent<Rigidbody2D>();
+       
     }
 
     void FixedUpdate()
     {
-        move();
+        if (canMove)
+        {
+            move(); // Só move o tanque se puder
+        }
     }
 
+    // Update is called once per frame
     void Update()
     {
         RotateTowardsMouse(); // Rotaciona o tanque em direção ao mouse
 
-        // Atirar se pressionar a tecla espaço e o tempo de fogo permitir
         if (Input.GetMouseButtonDown(0) && Time.time >= nextFireTime)
         {
-            Fire();
-            nextFireTime = Time.time + fireRate; // Controla o tempo entre disparos
+            Fire(); // Atira
+            nextFireTime = Time.time + fireRate; 
+        }
+
+        // Verifica se o botão direito do mouse foi pressionado
+        if (Input.GetMouseButtonDown(1))
+        {
+            EnterZoomMode(); 
+        }
+
+        // Verifica se o botão direito do mouse foi solto
+        if (Input.GetMouseButtonUp(1))
+        {
+            ExitZoomMode(); 
         }
     }
 
+    //faz a movimentação do player
     void move()
     {
         Vector2 movement = Vector2.zero;
@@ -79,4 +103,20 @@ public class PlayerController : MonoBehaviour
         Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
         rb.velocity = firePoint.right * bulletSpeed; // Mova o projétil na direção que o tanque está apontando
     }
+
+    // Função para entrar no modo de zoom e parar o movimento
+    void EnterZoomMode()
+    {
+        canMove = false; // Desabilita o movimento do tanque
+        RbP.velocity = Vector2.zero; // Para o tanque
+        cinemachineCam.m_Lens.OrthographicSize = zoomedOutSize; // Altera o zoom da Cinemachine
+    }
+
+    // Função para sair do modo de zoom e voltar ao normal
+    void ExitZoomMode()
+    {
+        canMove = true; // Habilita o movimento novamente
+        cinemachineCam.m_Lens.OrthographicSize = normalCameraSize; // Retorna o zoom normal da Cinemachine
+    }
+
 }
