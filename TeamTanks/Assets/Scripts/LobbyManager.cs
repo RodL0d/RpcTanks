@@ -67,7 +67,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         PhotonNetwork.JoinRoom(roomName);
     }
 
-    // Chamado quando o jogador entra em uma sala de espera
+    // Chamado quando o jogador entra em uma sala de espera 
     public override void OnJoinedRoom()
     {
         Debug.Log("Entrou na sala: " + PhotonNetwork.CurrentRoom.Name);
