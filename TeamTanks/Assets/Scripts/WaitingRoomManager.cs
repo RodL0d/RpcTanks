@@ -57,7 +57,7 @@ public class WaitingRoomManager : MonoBehaviourPunCallbacks
         if (PhotonNetwork.IsMasterClient)
         {
             // Carrega a cena do jogo em todas as máquinas
-            PhotonNetwork.LoadLevel("GameScene");
+            PhotonNetwork.LoadLevel("Mapa aim");
         }
     }
 }
