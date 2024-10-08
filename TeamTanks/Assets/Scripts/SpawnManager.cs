@@ -2,14 +2,14 @@ using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
 using System.Collections.Generic;
+using Cinemachine;
 
 public class SpawnManager : MonoBehaviourPunCallbacks
-
 {
     public Transform[] spawnPoints; // Array com os pontos de spawn
     private List<int> usedSpawnIndices = new List<int>(); // Lista de índices já usados
 
-    void Start()
+    private void Start()
     {
         if (PhotonNetwork.IsConnected)
         {
@@ -19,18 +19,27 @@ public class SpawnManager : MonoBehaviourPunCallbacks
 
     void SpawnPlayer()
     {
-        // Cada jogador escolhe um ponto de spawn aleatório
+        // Gera um índice aleatório para um ponto de spawn não utilizado
         int spawnIndex = GetRandomSpawnPoint();
         Vector3 spawnPosition = spawnPoints[spawnIndex].position;
 
         // Instancia o jogador na posição de spawn
         GameObject player = PhotonNetwork.Instantiate("PlayerPrefab", spawnPosition, Quaternion.identity);
 
-        // Pega o PhotonView do jogador instanciado
-        PhotonView playerPhotonView = player.GetComponent<PhotonView>();
+        // Marca o ponto de spawn como utilizado
+        photonView.RPC("MarkSpawnPointAsUsed", RpcTarget.AllBuffered, spawnIndex);
 
-        // Envia o RPC usando o PhotonView do jogador
-        playerPhotonView.RPC("MarkSpawnPointAsUsed", RpcTarget.AllBuffered, spawnIndex);
+        // Configura a câmera para seguir o jogador local
+        if (player.GetComponent<PhotonView>().IsMine)
+        {
+            // Adicione o componente CinemachineVirtualCamera à câmera
+            CinemachineVirtualCamera virtualCamera = FindObjectOfType<CinemachineVirtualCamera>();
+            if (virtualCamera != null)
+            {
+                virtualCamera.Follow = player.transform; // Faz a câmera seguir o jogador local
+                virtualCamera.LookAt = player.transform;  // A câmera também olha para o jogador
+            }
+        }
     }
 
     int GetRandomSpawnPoint()
