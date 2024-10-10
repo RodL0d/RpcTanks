@@ -1,9 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using Cinemachine;
+using Photon.Pun;
+using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviourPunCallbacks
 {
     Rigidbody2D RbP;
     public GameObject bulletPrefab; // Prefab do projétil
@@ -13,7 +14,7 @@ public class PlayerController : MonoBehaviour
     public float fireRate = 0.5f;   // Intervalo entre disparos
     private float nextFireTime = 0f;
 
-    public CinemachineVirtualCamera cinemachineCam; // Referência à CinemachineVirtualCamera
+    private CinemachineVirtualCamera cinemachineCam; // Referência à CinemachineVirtualCamera
     public float zoomedOutSize = 10f; // Tamanho da câmera ao dar zoom out
     public float normalCameraSize = 5f; // Tamanho normal da câmera
     private bool canMove = true; // Controle de movimento
@@ -22,88 +23,91 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         RbP = GetComponent<Rigidbody2D>();
-       
+
+        // Se o jogador é o local (photonView.IsMine), encontre a câmera e configure-a para seguir este jogador
+        if (photonView.IsMine)
+        {
+            cinemachineCam = FindObjectOfType<CinemachineVirtualCamera>();
+            if (cinemachineCam != null)
+            {
+                cinemachineCam.Follow = this.transform; // Atribui o tanque atual para a câmera seguir
+            }
+        }
     }
 
     void FixedUpdate()
     {
         if (canMove)
         {
-            move(); // Só move o tanque se puder
+            Move(); // Só move o tanque se puder
         }
     }
 
     // Update is called once per frame
     void Update()
     {
-        RotateTowardsMouse(); // Rotaciona o tanque em direção ao mouse
-
-        if (Input.GetMouseButtonDown(0) && Time.time >= nextFireTime)
+        if (photonView.IsMine) // Verifica se este é o jogador local
         {
-            Fire(); // Atira
-            nextFireTime = Time.time + fireRate; 
-        }
+            RotateTowardsMouse(); // Rotaciona o tanque em direção ao mouse
 
-        // Verifica se o botão direito do mouse foi pressionado
-        if (Input.GetMouseButtonDown(1))
-        {
-            EnterZoomMode(); 
-        }
+            if (Input.GetMouseButtonDown(0) && Time.time >= nextFireTime)
+            {
+                Fire(); // Atira
+                nextFireTime = Time.time + fireRate;
+            }
 
-        // Verifica se o botão direito do mouse foi solto
-        if (Input.GetMouseButtonUp(1))
-        {
-            ExitZoomMode(); 
+            // Verifica se o botão direito do mouse foi pressionado
+            if (Input.GetMouseButtonDown(1))
+            {
+                EnterZoomMode();
+            }
+
+            // Verifica se o botão direito do mouse foi solto
+            if (Input.GetMouseButtonUp(1))
+            {
+                ExitZoomMode();
+            }
         }
     }
 
-    //faz a movimentação do player
-    void move()
+// Faz a movimentação do player
+void Move()
     {
-        Vector2 movement = Vector2.zero;
+        float moveHorizontal = Input.GetAxis("Horizontal");
+        float moveVertical = Input.GetAxis("Vertical");
 
-        if (Input.GetKey(KeyCode.W))
-        {
-            movement += Vector2.up;
-        }
-        if (Input.GetKey(KeyCode.S))
-        {
-            movement += Vector2.down;
-        }
-        if (Input.GetKey(KeyCode.A))
-        {
-            movement += Vector2.left;
-        }
-        if (Input.GetKey(KeyCode.D))
-        {
-            movement += Vector2.right;
-        }
-
+        Vector2 movement = new Vector2(moveHorizontal, moveVertical);
         RbP.velocity = movement * speed;
     }
 
     // Função para rotacionar o tanque em direção ao mouse
     void RotateTowardsMouse()
     {
-        // Pegar a posição do mouse na tela e convertê-la para o mundo 2D
+        // Pega a posição do mouse na tela e converte para o mundo 2D
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+        // Define a posição Z como 0, já que estamos no plano 2D
         mousePos.z = 0;
-        Vector2 direction = (mousePos - transform.position).normalized; // Calcula a direção do tanque ao mouse
+
+        // Calcula a direção para a rotação
+        Vector2 direction = mousePos - transform.position;
 
         // Calcula o ângulo para rotacionar o tanque
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        //transform.rotation = Quaternion.Euler(0, 0, angle); // Rotaciona o tanque para apontar para o mouse
-        transform.up = mousePos - transform.position;
+
+        // Rotaciona o tanque para apontar para o mouse
+        transform.rotation = Quaternion.Euler(0, 0, angle);
     }
+
 
     void Fire()
     {
-        // Instancia o projétil na posição do ponto de disparo
-        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+        // Instancia o projétil via PhotonNetwork
+        GameObject bullet = PhotonNetwork.Instantiate(bulletPrefab.name, firePoint.position, firePoint.rotation);
 
         // Aplica velocidade ao projétil na direção do firePoint (que segue a direção do mouse)
         Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
-        rb.velocity = firePoint.right * bulletSpeed; // Mova o projétil na direção que o tanque está apontando
+        rb.velocity = firePoint.right * bulletSpeed;
     }
 
     // Função para entrar no modo de zoom e parar o movimento
@@ -111,14 +115,30 @@ public class PlayerController : MonoBehaviour
     {
         canMove = false; // Desabilita o movimento do tanque
         RbP.velocity = Vector2.zero; // Para o tanque
-        cinemachineCam.m_Lens.OrthographicSize = zoomedOutSize; // Altera o zoom da Cinemachine 
+        if (cinemachineCam != null)
+        {
+            cinemachineCam.m_Lens.OrthographicSize = zoomedOutSize; // Altera o zoom da Cinemachine 
+            Debug.Log("Entrou no modo de zoom");
+        }
+
     }
+
 
     // Função para sair do modo de zoom e voltar ao normal
     void ExitZoomMode()
     {
         canMove = true; // Habilita o movimento novamente
-        cinemachineCam.m_Lens.OrthographicSize = normalCameraSize; // Retorna o zoom normal da Cinemachine
+        if (cinemachineCam != null)
+        {
+            cinemachineCam.m_Lens.OrthographicSize = normalCameraSize; // Retorna o zoom normal
+        }
     }
+
+
+    public void SetCameraFollow(Transform playerTransform)
+    {
+        cinemachineCam.Follow = playerTransform; // Atribui o jogador local para ser seguido pela câmera
+    }
+
 
 }

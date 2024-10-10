@@ -1,15 +1,13 @@
 using Photon.Pun;
-using Photon.Realtime;
-using UnityEngine;
 using System.Collections.Generic;
-using Cinemachine;
+using UnityEngine;
 
 public class SpawnManager : MonoBehaviourPunCallbacks
 {
     public Transform[] spawnPoints; // Array com os pontos de spawn
     private List<int> usedSpawnIndices = new List<int>(); // Lista de índices já usados
 
-    private void Start()
+    void Start()
     {
         if (PhotonNetwork.IsConnected)
         {
@@ -19,35 +17,32 @@ public class SpawnManager : MonoBehaviourPunCallbacks
 
     void SpawnPlayer()
     {
-        // Gera um índice aleatório para um ponto de spawn não utilizado
+        // Cada jogador escolhe um ponto de spawn aleatório
         int spawnIndex = GetRandomSpawnPoint();
         Vector3 spawnPosition = spawnPoints[spawnIndex].position;
 
         // Instancia o jogador na posição de spawn
         GameObject player = PhotonNetwork.Instantiate("PlayerPrefab", spawnPosition, Quaternion.identity);
 
-        // Marca o ponto de spawn como utilizado
-        photonView.RPC("MarkSpawnPointAsUsed", RpcTarget.AllBuffered, spawnIndex);
 
-        // Configura a câmera para seguir o jogador local
+        // Se este jogador for o local, atribua a câmera para seguir
         if (player.GetComponent<PhotonView>().IsMine)
         {
-            // Adicione o componente CinemachineVirtualCamera à câmera
-            CinemachineVirtualCamera virtualCamera = FindObjectOfType<CinemachineVirtualCamera>();
-            if (virtualCamera != null)
+            CameraController cameraController = FindObjectOfType<CameraController>();
+            if (cameraController != null)
             {
-                virtualCamera.Follow = player.transform; // Faz a câmera seguir o jogador local
-                virtualCamera.LookAt = player.transform;  // A câmera também olha para o jogador
+                cameraController.SetCameraFollow(player.transform); // Define o jogador local como alvo da câmera
             }
         }
+
+        // Chame o RPC para marcar o ponto de spawn como utilizado
+        PhotonView playerPhotonView = player.GetComponent<PhotonView>();
+        photonView.RPC("MarkSpawnPointAsUsed", RpcTarget.AllBuffered, spawnIndex);
     }
 
     int GetRandomSpawnPoint()
     {
-        // Gera um índice aleatório para o spawn
         int randomIndex;
-
-        // Garante que o índice gerado ainda não foi usado
         do
         {
             randomIndex = Random.Range(0, spawnPoints.Length);
@@ -59,7 +54,6 @@ public class SpawnManager : MonoBehaviourPunCallbacks
     [PunRPC]
     void MarkSpawnPointAsUsed(int spawnIndex)
     {
-        // Marca o spawn point como utilizado para todos os jogadores
         if (!usedSpawnIndices.Contains(spawnIndex))
         {
             usedSpawnIndices.Add(spawnIndex);
