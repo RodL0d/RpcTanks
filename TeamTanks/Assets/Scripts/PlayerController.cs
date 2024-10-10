@@ -109,28 +109,38 @@ void Move()
         Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
         rb.velocity = firePoint.right * bulletSpeed;
     }
-
-    // Função para entrar no modo de zoom e parar o movimento
-    void EnterZoomMode()
+    IEnumerator SmoothZoom(float targetSize)
     {
-        canMove = false; // Desabilita o movimento do tanque
-        RbP.velocity = Vector2.zero; // Para o tanque
-        if (cinemachineCam != null)
+        float initialSize = cinemachineCam.m_Lens.OrthographicSize;
+        float elapsed = 0f;
+        float duration = 0.5f; // Duração da transição
+
+        while (elapsed < duration)
         {
-            cinemachineCam.m_Lens.OrthographicSize = zoomedOutSize; // Altera o zoom da Cinemachine 
-            Debug.Log("Entrou no modo de zoom");
+            cinemachineCam.m_Lens.OrthographicSize = Mathf.Lerp(initialSize, targetSize, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
         }
 
+        cinemachineCam.m_Lens.OrthographicSize = targetSize; // Garante que o valor final seja exato
     }
 
-
-    // Função para sair do modo de zoom e voltar ao normal
-    void ExitZoomMode()
+    void EnterZoomMode()
     {
-        canMove = true; // Habilita o movimento novamente
+        canMove = false;
+        RbP.velocity = Vector2.zero;
         if (cinemachineCam != null)
         {
-            cinemachineCam.m_Lens.OrthographicSize = normalCameraSize; // Retorna o zoom normal
+            StartCoroutine(SmoothZoom(zoomedOutSize));
+        }
+    }
+
+    void ExitZoomMode()
+    {
+        canMove = true;
+        if (cinemachineCam != null)
+        {
+            StartCoroutine(SmoothZoom(normalCameraSize));
         }
     }
 

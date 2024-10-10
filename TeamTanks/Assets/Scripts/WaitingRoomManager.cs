@@ -29,6 +29,11 @@ public class WaitingRoomManager : MonoBehaviourPunCallbacks
         }
     }
 
+    void Update()
+    {
+        UpdatePlayerList(); // Atualiza a lista de jogadores a cada frame
+    }
+
     // Atualiza a lista de jogadores exibida
     void UpdatePlayerList()
     {
@@ -56,7 +61,14 @@ public class WaitingRoomManager : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.IsMasterClient)
         {
-            // Carrega a cena do jogo em todas as máquinas
+            //   Verifique se há pelo menos 2 jogadores
+            if (PhotonNetwork.PlayerList.Length < 2)
+            {
+                Debug.Log("É necessário pelo menos 2 jogadores para iniciar o jogo.");
+                return;
+            }
+
+            // Carregue a cena do jogo em todas as máquinas
             PhotonNetwork.LoadLevel("Mapa aim");
         }
     }

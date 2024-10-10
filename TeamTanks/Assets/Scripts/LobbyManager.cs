@@ -11,44 +11,57 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     public TMP_InputField roomNameInput; // Usando TMP_InputField para o TextMeshPro
     public TMP_Text roomListText; // Usando TMP_Text para a lista de salas
     public byte maxPlayers = 4;
+    public TMP_Text statusText;
+    public GameObject roomButtonPrefab; // Prefab de um botão para sala
+    public Transform roomListContainer; // Container onde os botões serão instanciados
 
     void Start()
     {
         PhotonNetwork.ConnectUsingSettings(); // Conecta-se ao Photon
     }
 
-    // Chamado quando o jogador se conecta ao servidor mestre do Photon
     public override void OnConnectedToMaster()
     {
         Debug.Log("Conectado ao Master Server!");
-
-        // Entra no lobby principal
-        PhotonNetwork.JoinLobby();
+        PhotonNetwork.JoinLobby(); // Entra no lobby principal
     }
 
-    // Chamado quando o jogador entra no lobby
     public override void OnJoinedLobby()
     {
         Debug.Log("Entrou no lobby!");
+        statusText.text = "Lobby: " + PhotonNetwork.CurrentLobby.Name; // Exibe o nome do lobby atual
     }
 
-    // Chamado quando a lista de salas é atualizada
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
-        // Limpa o texto da lista de salas
-        roomListText.text = "";
-
-        // Atualiza a lista de salas no TextMeshPro
-        foreach (RoomInfo room in roomList)
+        // Limpa os botões antigos
+        /*foreach (Transform child in roomListContainer)
         {
-            roomListText.text += room.Name + " (" + room.PlayerCount + "/" + room.MaxPlayers + ")\n";
+            Destroy(child.gameObject); // Remove todos os botões existentes
+        }*/
+
+        // Verifica se há salas disponíveis
+        if (roomList.Count == 0)
+        {
+            roomListText.text = "Nenhuma sala disponível.";
+        }
+        else
+        {
+            roomListText.text = ""; // Limpa a mensagem de "nenhuma sala" se houver salas disponíveis
+
+            // Cria um botão para cada sala na lista
+            foreach (RoomInfo room in roomList)
+            {
+                GameObject roomButton = Instantiate(roomButtonPrefab, roomListContainer);
+                roomButton.GetComponentInChildren<TMP_Text>().text = room.Name + " (" + room.PlayerCount + "/" + room.MaxPlayers + ")";
+                roomButton.GetComponent<Button>().onClick.AddListener(() => JoinRoom(room.Name)); // Adiciona a função para entrar na sala
+            }
         }
     }
 
-    // Função chamada pelo botão para criar uma sala
     public void CreateRoom()
     {
-        string roomName = roomNameInput.text; // Obtém o nome da sala do InputField do TextMeshPro
+        string roomName = roomNameInput.text; // Obtém o nome da sala
         if (string.IsNullOrEmpty(roomName))
         {
             roomName = "Sala" + Random.Range(1000, 9999); // Nome aleatório se o campo estiver vazio
@@ -56,29 +69,25 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
         RoomOptions roomOptions = new RoomOptions();
         roomOptions.MaxPlayers = maxPlayers;
-
         PhotonNetwork.CreateRoom(roomName, roomOptions);
+        statusText.text = "Criando sala...";
     }
-    
 
-    // Função chamada pelo botão para entrar em uma sala
     public void JoinRoom(string roomName)
     {
+        statusText.text = "Tentando entrar na sala " + roomName + "...";
         PhotonNetwork.JoinRoom(roomName);
     }
 
-    // Chamado quando o jogador entra em uma sala de espera 
     public override void OnJoinedRoom()
     {
-        Debug.Log("Entrou na sala: " + PhotonNetwork.CurrentRoom.Name);
-
-        // Carrega a cena de espera (waiting room)
-        PhotonNetwork.LoadLevel("WaitingRoom");
+        statusText.text = "Entrando na sala " + PhotonNetwork.CurrentRoom.Name;
+        PhotonNetwork.LoadLevel("WaitingRoom"); // Carrega a cena de espera
     }
 
-    // Chamado se houver falha ao entrar em uma sala
     public override void OnJoinRoomFailed(short returnCode, string message)
     {
         Debug.Log("Falha ao entrar na sala: " + message);
+        statusText.text = "Falha ao entrar na sala: " + message; // Exibe mensagem de erro
     }
 }
