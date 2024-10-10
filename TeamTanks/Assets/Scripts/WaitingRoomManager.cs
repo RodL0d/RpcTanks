@@ -6,7 +6,6 @@ using Photon.Realtime;
 using UnityEngine.UI;
 using TMPro;
 
-
 public class WaitingRoomManager : MonoBehaviourPunCallbacks
 {
     public TMP_Text playerListText; // TextMeshPro para exibir os jogadores
@@ -19,14 +18,7 @@ public class WaitingRoomManager : MonoBehaviourPunCallbacks
         roomNameText.text = "Sala: " + PhotonNetwork.CurrentRoom.Name;
 
         // Apenas o Master Client pode ver o botão de iniciar o jogo
-        if (PhotonNetwork.IsMasterClient)
-        {
-            startGameButton.SetActive(true);
-        }
-        else
-        {
-            startGameButton.SetActive(false);
-        }
+        startGameButton.SetActive(PhotonNetwork.IsMasterClient);
     }
 
     void Update()
@@ -61,15 +53,21 @@ public class WaitingRoomManager : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.IsMasterClient)
         {
-            //   Verifique se há pelo menos 2 jogadores
-            if (PhotonNetwork.PlayerList.Length < 2)
+            // Verifique se há pelo menos 2 jogadores
+            if (PhotonNetwork.PlayerList.Length < 1)
             {
                 Debug.Log("É necessário pelo menos 2 jogadores para iniciar o jogo.");
                 return;
             }
 
-            // Carregue a cena do jogo em todas as máquinas
-            PhotonNetwork.LoadLevel("Mapa aim");
+            // Chama o RPC para iniciar o jogo
+            photonView.RPC("gameStart", RpcTarget.All); // Chama o método RPC para todos os jogadores
         }
+    }
+
+    [PunRPC]
+    public void gameStart()
+    {
+        PhotonNetwork.LoadLevel("Mapa aim");
     }
 }

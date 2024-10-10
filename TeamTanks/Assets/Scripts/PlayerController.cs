@@ -37,13 +37,17 @@ public class PlayerController : MonoBehaviourPunCallbacks
 
     void FixedUpdate()
     {
-        if (canMove)
+        if (photonView.IsMine)
         {
-            Move(); // Só move o tanque se puder
-        }
-    }
 
-    // Update is called once per frame
+            if (canMove)
+            {
+                Move();
+
+            }
+        }
+
+    }
     void Update()
     {
         if (photonView.IsMine) // Verifica se este é o jogador local
@@ -67,17 +71,43 @@ public class PlayerController : MonoBehaviourPunCallbacks
             {
                 ExitZoomMode();
             }
+
+            Move(); // Chama o movimento apenas para o jogador local
         }
     }
 
-// Faz a movimentação do player
-void Move()
+    // Modifique a função Move para incluir uma RPC
+    [PunRPC]
+    void MoveTank(float horizontal, float vertical)
+    {
+        Vector2 movement = new Vector2(horizontal, vertical);
+        RbP.velocity = movement * speed;
+    }
+
+    // Atualize o movimento local para enviar a posição ao servidor
+    void Move()
     {
         float moveHorizontal = Input.GetAxis("Horizontal");
         float moveVertical = Input.GetAxis("Vertical");
 
-        Vector2 movement = new Vector2(moveHorizontal, moveVertical);
-        RbP.velocity = movement * speed;
+        // Chame o RPC para atualizar a movimentação na rede
+        photonView.RPC("MoveTank", RpcTarget.All, moveHorizontal, moveVertical);
+    }
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            // Envia a posição e a rotação do jogador
+            stream.SendNext(transform.position);
+            stream.SendNext(transform.rotation);
+        }
+        else
+        {
+            // Recebe a posição e a rotação do jogador
+            transform.position = (Vector3)stream.ReceiveNext();
+            transform.rotation = (Quaternion)stream.ReceiveNext();
+        }
     }
 
     // Função para rotacionar o tanque em direção ao mouse
