@@ -31,6 +31,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
             if (cinemachineCam != null)
             {
                 cinemachineCam.Follow = this.transform; // Atribui o tanque atual para a câmera seguir
+                ExitZoomMode();
             }
         }
     }
@@ -40,7 +41,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
         if (photonView.IsMine)
         {
 
-            if (canMove)
+            if (canMove == true)
             {
                 Move();
 
@@ -80,8 +81,11 @@ public class PlayerController : MonoBehaviourPunCallbacks
     [PunRPC]
     void MoveTank(float horizontal, float vertical)
     {
-        Vector2 movement = new Vector2(horizontal, vertical);
-        RbP.velocity = movement * speed;
+        if (canMove == true)
+        {
+            Vector2 movement = new Vector2(horizontal, vertical);
+            RbP.velocity = movement * speed;
+        }
     }
 
     // Atualize o movimento local para enviar a posição ao servidor
@@ -158,6 +162,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
     void EnterZoomMode()
     {
         canMove = false;
+        Debug.Log("não se move");
         RbP.velocity = Vector2.zero;
         if (cinemachineCam != null)
         {

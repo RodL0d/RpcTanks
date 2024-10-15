@@ -11,6 +11,8 @@ public class WaitingRoomManager : MonoBehaviourPunCallbacks
     public TMP_Text playerListText; // TextMeshPro para exibir os jogadores
     public GameObject startGameButton; // Botão para o Master Client iniciar o jogo
     public TMP_Text roomNameText;  // Referência ao TMP_Text para mostrar o nome da sala
+    private MapType selectedMap = MapType.Mapa1;
+
 
     void Start()
     {
@@ -53,21 +55,39 @@ public class WaitingRoomManager : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.IsMasterClient)
         {
-            // Verifique se há pelo menos 2 jogadores
-            if (PhotonNetwork.PlayerList.Length < 1)
+            if (PhotonNetwork.PlayerList.Length < 2)
             {
                 Debug.Log("É necessário pelo menos 2 jogadores para iniciar o jogo.");
                 return;
             }
 
             // Chama o RPC para iniciar o jogo
-            photonView.RPC("gameStart", RpcTarget.All); // Chama o método RPC para todos os jogadores
+            photonView.RPC("gameStart", RpcTarget.All, (int)selectedMap); // Passa o mapa selecionado
         }
     }
 
     [PunRPC]
-    public void gameStart()
+    public void gameStart(int mapIndex)
     {
-        PhotonNetwork.LoadLevel("Mapa aim");
+        // Carrega o mapa selecionado
+        string mapName = "Mapa" + (mapIndex + 1); // Supondo que os nomes dos mapas sejam "Mapa1", "Mapa2", "Mapa3"
+        PhotonNetwork.LoadLevel(mapName);
     }
+
+    public enum MapType
+    {
+        Mapa1,
+        Mapa2,
+        Mapa3
+    }
+
+    public void SelectMap(int mapIndex)
+    {
+        selectedMap = (MapType)mapIndex;
+        Debug.Log("Mapa selecionado: " + selectedMap);
+    }
+    public void OnMap1Selected() { SelectMap(0); }
+    public void OnMap2Selected() { SelectMap(1); }
+    public void OnMap3Selected() { SelectMap(2); }
+
 }
