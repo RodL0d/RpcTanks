@@ -23,8 +23,6 @@ public class PlayerController : MonoBehaviourPunCallbacks
     private void Start()
     {
         RbP = GetComponent<Rigidbody2D>();
-
-        // Se o jogador é o local (photonView.IsMine), encontre a câmera e configure-a para seguir este jogador
         if (photonView.IsMine)
         {
             cinemachineCam = FindObjectOfType<CinemachineVirtualCamera>();
@@ -38,42 +36,34 @@ public class PlayerController : MonoBehaviourPunCallbacks
 
     void FixedUpdate()
     {
-        if (photonView.IsMine)
+        if (photonView.IsMine && canMove)
         {
-
-            if (canMove == true)
-            {
-                Move();
-
-            }
+            Move();
         }
-
     }
+
+
     void Update()
     {
-        if (photonView.IsMine) // Verifica se este é o jogador local
+        if (photonView.IsMine)
         {
-            RotateTowardsMouse(); // Rotaciona o tanque em direção ao mouse
+            RotateTowardsMouse();
 
             if (Input.GetMouseButtonDown(0) && Time.time >= nextFireTime)
             {
-                Fire(); // Atira
+                Fire(); // Chama o método Fire
                 nextFireTime = Time.time + fireRate;
             }
 
-            // Verifica se o botão direito do mouse foi pressionado
             if (Input.GetMouseButtonDown(1))
             {
                 EnterZoomMode();
             }
 
-            // Verifica se o botão direito do mouse foi solto
             if (Input.GetMouseButtonUp(1))
             {
                 ExitZoomMode();
             }
-
-            Move(); // Chama o movimento apenas para o jogador local
         }
     }
 
@@ -133,16 +123,25 @@ public class PlayerController : MonoBehaviourPunCallbacks
         transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
-
-    void Fire()
+    // Método RPC para disparar
+    [PunRPC]
+    void RPCFire()
     {
         // Instancia o projétil via PhotonNetwork
         GameObject bullet = PhotonNetwork.Instantiate(bulletPrefab.name, firePoint.position, firePoint.rotation);
 
-        // Aplica velocidade ao projétil na direção do firePoint (que segue a direção do mouse)
+        // Aplica velocidade ao projétil
         Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
         rb.velocity = firePoint.right * bulletSpeed;
     }
+
+    void Fire()
+    {
+        // Chama o método RPC para todos os jogadores
+        photonView.RPC("RPCFire", RpcTarget.All);
+    }
+
+
     IEnumerator SmoothZoom(float targetSize)
     {
         float initialSize = cinemachineCam.m_Lens.OrthographicSize;

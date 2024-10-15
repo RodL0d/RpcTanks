@@ -55,7 +55,7 @@ public class WaitingRoomManager : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.IsMasterClient)
         {
-            if (PhotonNetwork.PlayerList.Length < 2)
+            if (PhotonNetwork.PlayerList.Length < 1)
             {
                 Debug.Log("É necessário pelo menos 2 jogadores para iniciar o jogo.");
                 return;
