@@ -83,6 +83,9 @@ MonoBehaviour:
   fireRate: 0.5
   zoomedOutSize: 10
   normalCameraSize: 6.028805
+  maxHealth: 100
+  currentHealth: 0
+  spawnPoint: {x: 0, y: 0, z: 0}
 --- !u!61 &4654988411075842409
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -192,7 +195,7 @@ Transform:
   m_GameObject: {fileID: 4713869042890004140}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.94, y: 0.03, z: 0.12392309}
+  m_LocalPosition: {x: 1.38, y: 0.03, z: 0.12392309}
   m_LocalScale: {x: 1.5206813, y: 1.5206813, z: 1.5206813}
   m_ConstrainProportionsScale: 0
   m_Children: []

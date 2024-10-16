@@ -19,10 +19,21 @@ public class PlayerController : MonoBehaviourPunCallbacks
     public float normalCameraSize = 5f; // Tamanho normal da câmera
     private bool canMove = true; // Controle de movimento
 
+    public int maxHealth = 100; // Vida máxima
+    public int currentHealth;  // Vida atual
+    public Vector3 spawnPoint; // Ponto de spawn original
+
+
+
     // Start is called before the first frame update
     private void Start()
     {
         RbP = GetComponent<Rigidbody2D>();
+        currentHealth = maxHealth; // Inicializa com vida cheia
+
+        // Armazena o ponto de spawn inicial
+        spawnPoint = transform.position;
+
         if (photonView.IsMine)
         {
             cinemachineCam = FindObjectOfType<CinemachineVirtualCamera>();
@@ -78,6 +89,39 @@ public class PlayerController : MonoBehaviourPunCallbacks
         }
     }
 
+    // Método para receber dano
+    [PunRPC]
+    public void TakeDamage(int damage)
+    {
+        if (!photonView.IsMine) return; // Apenas o tanque local pode receber dano diretamente
+
+        currentHealth -= damage;
+        Debug.Log("Vida atual: " + currentHealth);
+
+        if (currentHealth <= 0)
+        {
+            Respawn(); // Restaura o tanque
+        }
+    }
+
+    // Método para restaurar o tanque no ponto de spawn com vida cheia
+    void Respawn()
+    {
+        // Reseta a vida
+        currentHealth = maxHealth;
+
+        // Movimenta o tanque de volta ao ponto de spawn
+        transform.position = spawnPoint;
+
+        StartCoroutine(RespawnDelay());
+    }
+    IEnumerator RespawnDelay()
+    {
+        canMove = false;  // Impede o movimento durante o respawn
+        yield return new WaitForSeconds(1.0f); // Aguarda 1 segundo antes de reativar o tanque
+        canMove = true;   // Permite o movimento novamente
+    }
+
     // Atualize o movimento local para enviar a posição ao servidor
     void Move()
     {
@@ -123,22 +167,37 @@ public class PlayerController : MonoBehaviourPunCallbacks
         transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
-    // Método RPC para disparar
-    [PunRPC]
-    void RPCFire()
+    // Função para criar o projétil localmente
+    void CreateBullet()
     {
-        // Instancia o projétil via PhotonNetwork
-        GameObject bullet = PhotonNetwork.Instantiate(bulletPrefab.name, firePoint.position, firePoint.rotation);
+        // Instancia o projétil localmente
+        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
 
         // Aplica velocidade ao projétil
         Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
         rb.velocity = firePoint.right * bulletSpeed;
     }
 
+    [PunRPC]
+    void RPCFire()
+    {
+        // Apenas os jogadores remotos criarão o projétil
+        if (!photonView.IsMine)
+        {
+            CreateBullet();
+        }
+    }
+
     void Fire()
     {
-        // Chama o método RPC para todos os jogadores
-        photonView.RPC("RPCFire", RpcTarget.All);
+        // O jogador local cria o projétil e dispara
+        if (photonView.IsMine)
+        {
+            CreateBullet();
+        }
+
+        // Chama o método RPC para os outros jogadores criarem o projétil
+        photonView.RPC("RPCFire", RpcTarget.Others);
     }
 
 
