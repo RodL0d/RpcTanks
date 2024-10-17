@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Cinemachine;
 using Photon.Pun;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviourPunCallbacks
 {
@@ -14,25 +15,28 @@ public class PlayerController : MonoBehaviourPunCallbacks
     public float fireRate = 0.5f;   // Intervalo entre disparos
     private float nextFireTime = 0f;
 
+    public Vector3 spawnPoint; // Ponto de spawn original
+    public int maxHealth = 100; // Vida máxima
+    private int currentHealth;  // Vida atual
+
+    public Image healthBarImage; // Referência à imagem da barra de vida
+    public Transform healthBarTransform; // Transform da barra de vida para seguir o tanque
+
     private CinemachineVirtualCamera cinemachineCam; // Referência à CinemachineVirtualCamera
     public float zoomedOutSize = 10f; // Tamanho da câmera ao dar zoom out
     public float normalCameraSize = 5f; // Tamanho normal da câmera
     private bool canMove = true; // Controle de movimento
 
-    public int maxHealth = 100; // Vida máxima
-    public int currentHealth;  // Vida atual
-    public Vector3 spawnPoint; // Ponto de spawn original
 
-
-
-    // Start is called before the first frame update
     private void Start()
     {
         RbP = GetComponent<Rigidbody2D>();
         currentHealth = maxHealth; // Inicializa com vida cheia
 
-        // Armazena o ponto de spawn inicial
-        spawnPoint = transform.position;
+        // Inicializa a barra de vida como completamente cheia
+        UpdateHealthBarUI();
+
+        spawnPoint = transform.position; // Armazena o ponto de spawn inicial
 
         if (photonView.IsMine)
         {
@@ -76,6 +80,8 @@ public class PlayerController : MonoBehaviourPunCallbacks
                 ExitZoomMode();
             }
         }
+
+
     }
 
     // Modifique a função Move para incluir uma RPC
@@ -98,11 +104,33 @@ public class PlayerController : MonoBehaviourPunCallbacks
         currentHealth -= damage;
         Debug.Log("Vida atual: " + currentHealth);
 
+        // Atualiza o valor da barra de vida localmente
+        UpdateHealthBarUI();
+
+        // Envia a atualização da vida para todos os jogadores
+        photonView.RPC("UpdateHealthBar", RpcTarget.All, currentHealth);
+
         if (currentHealth <= 0)
         {
             Respawn(); // Restaura o tanque
         }
     }
+
+    // Método RPC para atualizar a barra de vida em todos os clientes
+    [PunRPC]
+    public void UpdateHealthBar(int health)
+    {
+        currentHealth = health;
+        UpdateHealthBarUI();
+    }
+
+    // Atualiza a imagem da barra de vida localmente
+    void UpdateHealthBarUI()
+    {
+        // Calcula o preenchimento com base na vida atual
+        healthBarImage.fillAmount = (float)currentHealth / maxHealth;
+    }
+
 
     // Método para restaurar o tanque no ponto de spawn com vida cheia
     void Respawn()
@@ -110,11 +138,19 @@ public class PlayerController : MonoBehaviourPunCallbacks
         // Reseta a vida
         currentHealth = maxHealth;
 
+        // Atualiza a barra de vida para cheia novamente localmente
+        UpdateHealthBarUI();
+
         // Movimenta o tanque de volta ao ponto de spawn
         transform.position = spawnPoint;
 
+        // Envia a atualização de respawn para todos os jogadores
+        photonView.RPC("UpdateHealthBar", RpcTarget.All, currentHealth);
+
+        // Opcional: adicionar um pequeno delay antes de restaurar o movimento
         StartCoroutine(RespawnDelay());
     }
+
     IEnumerator RespawnDelay()
     {
         canMove = false;  // Impede o movimento durante o respawn
