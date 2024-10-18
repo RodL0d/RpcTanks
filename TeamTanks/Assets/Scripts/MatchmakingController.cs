@@ -43,6 +43,8 @@ public class MatchmakingController : MonoBehaviourPunCallbacks
         PhotonNetwork.CreateRoom(roomName, roomOptions);
     }
 
+
+
     // Chamado quando você entra em uma sala com sucesso
     public override void OnJoinedRoom()
     {

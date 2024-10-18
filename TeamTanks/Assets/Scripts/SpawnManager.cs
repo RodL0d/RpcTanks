@@ -9,7 +9,7 @@ public class SpawnManager : MonoBehaviourPunCallbacks
 
     void Start()
     {
-        if (PhotonNetwork.IsConnected)
+        if (PhotonNetwork.InRoom)
         {
             SpawnPlayer();
         }
@@ -23,26 +23,24 @@ public class SpawnManager : MonoBehaviourPunCallbacks
 
     void SpawnPlayer()
     {
-        // Cada jogador escolhe um ponto de spawn aleatório
+        if (spawnPoints.Length == 0)
+        {
+            Debug.LogError("Nenhum ponto de spawn foi atribuído.");
+            return;
+        }
+
+        // Embaralha os pontos de spawn no início
         int spawnIndex = GetRandomSpawnPoint();
         Vector3 spawnPosition = spawnPoints[spawnIndex].position;
 
-        Debug.Log($"Jogador {PhotonNetwork.LocalPlayer.NickName} está spawnando na posição: {spawnPosition}");
-
-        // Instancia o jogador na posição de spawn
         GameObject player = PhotonNetwork.Instantiate("PlayerPrefab", spawnPosition, Quaternion.identity);
 
-        // Se este jogador for o local, atribua a câmera para seguir
         if (player.GetComponent<PhotonView>().IsMine)
         {
             CameraController cameraController = FindObjectOfType<CameraController>();
-            if (cameraController != null)
-            {
-                cameraController.SetCameraFollow(player.transform); // Define o jogador local como alvo da câmera
-            }
+            cameraController?.SetCameraFollow(player.transform);
         }
 
-        // Chame o RPC para marcar o ponto de spawn como utilizado
         photonView.RPC("MarkSpawnPointAsUsed", RpcTarget.AllBuffered, spawnIndex);
     }
 
