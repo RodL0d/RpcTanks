@@ -10,6 +10,7 @@ public class WaitingRoomManager : MonoBehaviourPunCallbacks
 {
     public TMP_Text playerListText; // TextMeshPro para exibir os jogadores
     public GameObject startGameButton; // Botão para o Master Client iniciar o jogo
+    public GameObject LeaveLobbyButton; // Bitçao para sair do lobby
     public TMP_Text roomNameText;  // Referência ao TMP_Text para mostrar o nome da sala
     private MapType selectedMap = MapType.Mapa1;
 
@@ -50,6 +51,20 @@ public class WaitingRoomManager : MonoBehaviourPunCallbacks
         UpdatePlayerList(); // Atualiza a lista de jogadores
     }
 
+    // Botão para voltar ao lobby
+    public void LeaveGame()
+    {
+        PhotonNetwork.LeaveRoom(); // Sai da sala e volta ao lobby
+    }
+
+    // Callback chamado quando o jogador sai da sala
+    public override void OnLeftRoom()
+    {
+        PhotonNetwork.LoadLevel("Lobby"); // Carrega a cena do lobby
+    }
+
+
+
     // Botão que o Master Client usa para iniciar o jogo
     public void StartGame()
     {
@@ -72,6 +87,7 @@ public class WaitingRoomManager : MonoBehaviourPunCallbacks
         // Carrega o mapa selecionado
         string mapName = "Mapa" + (mapIndex + 1); // Supondo que os nomes dos mapas sejam "Mapa1", "Mapa2", "Mapa3"
         PhotonNetwork.LoadLevel(mapName);
+        photonView.RPC("ShowGameStartText", RpcTarget.All);
     }
 
     public enum MapType

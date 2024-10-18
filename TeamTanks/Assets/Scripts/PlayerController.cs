@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Cinemachine;
 using Photon.Pun;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -79,8 +80,8 @@ public class PlayerController : MonoBehaviourPunCallbacks
             {
                 ExitZoomMode();
             }
+   
         }
-
 
     }
 
@@ -116,6 +117,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
         }
     }
 
+
     // Método RPC para atualizar a barra de vida em todos os clientes
     [PunRPC]
     public void UpdateHealthBar(int health)
@@ -130,6 +132,8 @@ public class PlayerController : MonoBehaviourPunCallbacks
         // Calcula o preenchimento com base na vida atual
         healthBarImage.fillAmount = (float)currentHealth / maxHealth;
     }
+
+
 
 
     // Método para restaurar o tanque no ponto de spawn com vida cheia
