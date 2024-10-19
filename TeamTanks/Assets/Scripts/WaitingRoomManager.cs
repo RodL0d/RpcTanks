@@ -12,9 +12,9 @@ public class WaitingRoomManager : MonoBehaviourPunCallbacks
     public GameObject startGameButton; // Botão para o Master Client iniciar o jogo
     public GameObject LeaveLobbyButton; // Bitçao para sair do lobby
     public TMP_Text roomNameText;  // Referência ao TMP_Text para mostrar o nome da sala
-    private MapType selectedMap = MapType.Mapa1;
+    private MapType selectedMap = MapType.Mapa1; //Seleciona o tipo de mapa sendo o mapa 1 já predefinido
 
-
+    // Start is called before the first frame update
     void Start()
     {
         UpdatePlayerList();
@@ -24,6 +24,7 @@ public class WaitingRoomManager : MonoBehaviourPunCallbacks
         startGameButton.SetActive(PhotonNetwork.IsMasterClient);
     }
 
+    // Update is called once per frame
     void Update()
     {
         UpdatePlayerList(); // Atualiza a lista de jogadores a cada frame
@@ -81,6 +82,7 @@ public class WaitingRoomManager : MonoBehaviourPunCallbacks
         }
     }
 
+    //É chamado pelo startGame para mudar a cena de todos para o mapa escolhido
     [PunRPC]
     public void gameStart(int mapIndex)
     {
@@ -90,6 +92,7 @@ public class WaitingRoomManager : MonoBehaviourPunCallbacks
         photonView.RPC("ShowGameStartText", RpcTarget.All);
     }
 
+    //Referencia todos os mapas existentes
     public enum MapType
     {
         Mapa1,
@@ -97,6 +100,7 @@ public class WaitingRoomManager : MonoBehaviourPunCallbacks
         Mapa3
     }
 
+    //Seleciona o mapa de acordo com o nome
     public void SelectMap(int mapIndex)
     {
         selectedMap = (MapType)mapIndex;

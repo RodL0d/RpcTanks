@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour
         
     }
 
+    //carrega a cena do Lobby
     public void carregarLobby()
     {
         SceneManager.LoadScene("Lobby");

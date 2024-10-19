@@ -6,7 +6,7 @@ using UnityEngine;
 public class Bullet : MonoBehaviour
 {
 
-    public int damage = 20; 
+    public int damage = 20; //Define o dano da bala
 
     // Start is called before the first frame update
     void Start()
@@ -20,6 +20,7 @@ public class Bullet : MonoBehaviour
         
     }
 
+    //Collisao da bala com o player e ser destruida
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Player"))

@@ -4,8 +4,9 @@ using Cinemachine;
 
 public class CameraController : MonoBehaviour
 {
-    private CinemachineVirtualCamera virtualCamera;
+    private CinemachineVirtualCamera virtualCamera; //Camera do Cinema Machine
 
+    // Start is called before the first frame update
     private void Start()
     {
         // Obtenha a referência à câmera virtual
@@ -29,6 +30,7 @@ public class CameraController : MonoBehaviour
         }
     }
 
+    // Update is called once per frame
     private void Update()
     {
         // Aqui você pode adicionar lógica para o que acontece com a posição do mouse, se necessário
@@ -45,6 +47,7 @@ public class CameraController : MonoBehaviour
         }
     }
 
+    //Faz a camera seguir o jogador que está controlando
     public void SetCameraFollow(Transform playerTransform)
     {
         if (virtualCamera != null)

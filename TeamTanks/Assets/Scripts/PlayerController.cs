@@ -48,6 +48,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IMovable
         }
     }
 
+    // Responsável pela movimentação física do tanque
     void FixedUpdate()
     {
         if (photonView.IsMine && canMove)
@@ -56,6 +57,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IMovable
         }
     }
 
+    // Responsável por detectar entrada de disparo, zoom e rotação
     void Update()
     {
         if (photonView.IsMine)
@@ -80,7 +82,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IMovable
         }
     }
 
-    // Implementando a interface IMovable
+    // Responsável por enviar o movimento do tanque pela rede
     public void Move()
     {
         float moveHorizontal = Input.GetAxis("Horizontal");
@@ -89,6 +91,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IMovable
         photonView.RPC("MoveTank", RpcTarget.All, moveHorizontal, moveVertical);
     }
 
+    // Move o tanque utilizando a física
     [PunRPC]
     void MoveTank(float horizontal, float vertical)
     {
@@ -108,7 +111,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IMovable
         transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
-    // Implementando a interface IDamageable
+    // Aplica dano ao tanque e atualiza a vida
     [PunRPC]
     public void TakeDamage(int damage)
     {
@@ -125,6 +128,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IMovable
         }
     }
 
+    // Atualiza a barra de vida em todos os clientes
     [PunRPC]
     public void UpdateHealthBar(int health)
     {
@@ -132,11 +136,13 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IMovable
         UpdateHealthBarUI();
     }
 
+    // Atualiza a imagem da barra de vida
     void UpdateHealthBarUI()
     {
         healthBarImage.fillAmount = (float)currentHealth / maxHealth;
     }
 
+    // Restaura o tanque no ponto de spawn
     void Respawn()
     {
         currentHealth = maxHealth;
@@ -146,6 +152,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IMovable
         StartCoroutine(RespawnDelay());
     }
 
+    // Impede o movimento durante o respawn
     IEnumerator RespawnDelay()
     {
         canMove = false;
@@ -153,6 +160,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IMovable
         canMove = true;
     }
 
+    // Realiza o disparo do projétil
     void Fire()
     {
         if (photonView.IsMine)
@@ -163,6 +171,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IMovable
         photonView.RPC("RPCFire", RpcTarget.Others);
     }
 
+    // Cria um projétil localmente
     void CreateBullet()
     {
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
@@ -170,6 +179,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IMovable
         rb.velocity = firePoint.right * bulletSpeed;
     }
 
+    // Dispara o projétil localmente e notifica outros jogadores
     [PunRPC]
     void RPCFire()
     {
@@ -179,6 +189,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IMovable
         }
     }
 
+    // Suaviza a transição de zoom da câmera
     IEnumerator SmoothZoom(float targetSize)
     {
         float initialSize = cinemachineCam.m_Lens.OrthographicSize;
@@ -195,6 +206,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IMovable
         cinemachineCam.m_Lens.OrthographicSize = targetSize;
     }
 
+    // Entra no modo de zoom
     void EnterZoomMode()
     {
         canMove = false;
@@ -205,6 +217,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IMovable
         }
     }
 
+    // Sai do modo de zoom
     void ExitZoomMode()
     {
         canMove = true;
@@ -214,6 +227,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable, IMovable
         }
     }
 
+    // Define qual jogador a câmera deve seguir
     public void SetCameraFollow(Transform playerTransform)
     {
         cinemachineCam.Follow = playerTransform;

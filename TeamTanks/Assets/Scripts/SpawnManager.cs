@@ -7,6 +7,8 @@ public class SpawnManager : MonoBehaviourPunCallbacks
     public Transform[] spawnPoints; // Array com os pontos de spawn
     private List<int> usedSpawnIndices = new List<int>(); // Lista de índices já usados
 
+
+    // Start is called before the first frame update
     void Start()
     {
         if (PhotonNetwork.InRoom)
@@ -15,12 +17,14 @@ public class SpawnManager : MonoBehaviourPunCallbacks
         }
     }
 
+    //Chamar metodo Spawn players quando entrar na Partida
     public override void OnJoinedRoom()
     {
         base.OnJoinedRoom();
         SpawnPlayer(); // Garantindo que o jogador spawne ao entrar na sala
     }
 
+    //Dar spawn nos players em 1 dos 4 spawn points diferentes
     void SpawnPlayer()
     {
         if (spawnPoints.Length == 0)
@@ -44,6 +48,7 @@ public class SpawnManager : MonoBehaviourPunCallbacks
         photonView.RPC("MarkSpawnPointAsUsed", RpcTarget.AllBuffered, spawnIndex);
     }
 
+    //Pegar um dos 4 spawpoints para dar spawn 
     int GetRandomSpawnPoint()
     {
         int randomIndex;
@@ -55,6 +60,7 @@ public class SpawnManager : MonoBehaviourPunCallbacks
         return randomIndex;
     }
 
+    //Marca um spawn como usado para não ocorrer mais de um player por spawn
     [PunRPC]
     void MarkSpawnPointAsUsed(int spawnIndex)
     {
